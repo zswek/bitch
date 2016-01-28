@@ -77,7 +77,7 @@ void vmm_free_page(void* attr, _size_t count) {
             pmm_free_page(get_vmm_page(index + i), 1);
             globl_page_remove(get_globl_page_index(index + i));
         }
-        if (index + count - 1 > vmm_pos) 
+        if (index + count - 1 > vmm_pos)
             vmm_pos = index + count - 1;
     }
     vmm_free_page_count += count;
@@ -98,35 +98,35 @@ void* vmm_mmap_page(void* phy_attr) {
     return NULL;
 }
 
-void vmm_unmamp_page(void* attr, _size_t count) {
+void vmm_ummap_page(void* attr, _size_t count) {
     _size_t i, index = (_u32_t) attr / PAGE_SIZE - dmmap_page_count;
     if (index + count <= vmmap_page_count) {
         for (i = 0; i < count; i++) {
             globl_page_remove(get_globl_page_index(index + i));
         }
-        if (index + count - 1 > vmm_pos) 
+        if (index + count - 1 > vmm_pos)
             vmm_pos = index + count - 1;
     }
     vmm_free_page_count += count;
 }
 
 void vmm_init(void) {
-    
+
     if (mem_page_count < DMMAP_PAGE_MAX) {
         dmmap_page_count = mem_page_count;
     }
     vmmap_page_count = GLOBL_PAGE_NUM - dmmap_page_count;
-    
+
     int i;
     for (i = 0; i < dmmap_page_count; i++) {
         globl_page_mmap(i, i);
     }
-    
+
     vmm_pos = vmmap_page_count - 1;
-    
+
     vmm_free_page_count = vmmap_page_count;
-    
+
     debug("Kernel Mapp: Direct %d pages, Dynamic %d pages", dmmap_page_count, vmmap_page_count);
-    
+
     init_process_lock(&lock);
 }

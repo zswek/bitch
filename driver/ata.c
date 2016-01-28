@@ -105,25 +105,25 @@ static _lock_t ilock_p;
 static _lock_t ilock_s;
 
 static void irq14_handler(_intr_regs_t *regs) {
-    
+
     if ((inb(ATA_P_STAT_IO) & STAT_REG_BSY) == 0) {
         intr_unlock(&ilock_p);
     }
-    
+
 }
 
 static void irq15_handler(_intr_regs_t *regs) {
-    
+
     if ((inb(ATA_S_STAT_IO) & STAT_REG_BSY) == 0) {
         intr_unlock(&ilock_s);
     }
-    
+
 }
 
 static _ata_io_t ata_io_lock(_u8_t n) {
-    
+
     _ata_io_t io;
-    
+
     io.n = n;
     if (n % 2) {
         io.device_reg = DEV_REG_DRV;
@@ -162,43 +162,43 @@ static _ata_io_t ata_io_lock(_u8_t n) {
         io.ilock = &ilock_s;
         process_lock(&lock_s);
     }
-    
+
     return io;
 }
 
 static void ata_io_unlock(_u8_t n) {
-    
+
     if (n < 2) {
         process_unlock(&lock_p);
     }
     else if (n < 4) {
         process_unlock(&lock_s);
     }
-    
+
 }
 
 static void init_status(void) {
-    
+
     ata_state = 0;
-    
+
     int n;
     for (n = 0; n < 4; n++) {
-        
+
         _ata_io_t io = ata_io_lock(n);
-        
+
         _ata_state_t state = NODISK;
-        
+
         ata_sectors[n] = 0;
-        
+
         init_intr_lock(io.ilock);
-        
+
         outb_p(io.device_reg, io.device_io);
         outb_p(COM_IDENTIFY, io.command_io);
-        
+
         if ((inb(io.status_io) & STAT_REG_DRDY) != 0) {
-            
+
             intr_lock(io.ilock);
-            
+
             int i;
             for (i = 0; i < 256; i++) {
                 _u16_t data = inw(io.data_io);
@@ -233,88 +233,89 @@ static void init_status(void) {
                     ata_sectors[n] += (_u64_t) data << 48;
                 }
             }
-            
+
         }
-        
+
         ata_state |= state << (n * 2);
-        
+
         ata_io_unlock(n);
-        
+
         if (ata_sectors[n] != 0) {
             debug("ATA %d: %s Bus, %s Device, %s", n, (n / 2) ? "Secondary":"Primary", (n % 2) ? "Slave":"Master",
             state ? ((state - 1) ? ((state - 2) ? "LBA48 Mode":"LBA28 Mode"):"CHS Mode"):"NoDisk");
             disk_create (DISK_ATA, n, ata_sectors[n]);
         }
     }
-    
+
 }
 
 static void ata_lba28_attr(_ata_io_t io, _u8_t count, _u32_t offect) {
-    
+
     outb_p(count, io.sector_count_io);
-    
+
     outb_p(offect & 0xff, io.lba_low_io);
     outb_p((offect >> 8) & 0xff, io.lba_mid_io);
     outb_p((offect >> 16) & 0xff, io.lba_high_io);
-    
+
     outb_p(((offect >> 24) & 0x0f)|DEV_REG_L|io.device_reg, io.device_io);
-    
+
 }
 
 static void ata_read_lba28(_ata_io_t io, _u8_t count, _u32_t offect) {
-    
+
     ata_lba28_attr(io, count, offect);
-    
+
     outb_p(COM_READ_SECTORS, io.command_io);
-    
+
 }
 
 static void ata_write_lba28(_ata_io_t io, _u8_t count, _u32_t offect) {
-    
+
     ata_lba28_attr(io, count, offect);
-    
+
     outb_p(COM_WRITE_SECTORS, io.command_io);
-    
+
 }
 
 static void ata_lba48_attr(_ata_io_t io, _u16_t count, _u64_t offect)  {
-    
+
     outb_p((count >> 8) & 0xff, io.sector_count_io);
-    
+
     outb_p((_u8_t) ((offect >> 24) & 0xff), io.lba_low_io);
     outb_p((_u8_t) ((offect >> 32) & 0xff), io.lba_mid_io);
     outb_p((_u8_t) ((offect >> 40) & 0xff), io.lba_high_io);
-    
+
     outb_p(count & 0xff, io.sector_count_io);
-    
+
     outb_p((_u8_t) (offect & 0xff), io.lba_low_io);
     outb_p((_u8_t) ((offect >> 8) & 0xff), io.lba_mid_io);
     outb_p((_u8_t) ((offect >> 16) & 0xff), io.lba_high_io);
-    
+
     outb_p(DEV_REG_L|io.device_reg, io.device_io);
-    
+
 }
 
 static void ata_read_lba48(_ata_io_t io, _u16_t count, _u64_t offect) {
-    
+
     ata_lba48_attr(io, count, offect);
-    
+
     outb_p(COM_READ_SECTORS_EXT, io.command_io);
-    
+
 }
 
 static void ata_write_lba48(_ata_io_t io, _u16_t count, _u64_t offect) {
-    
+
     ata_lba48_attr(io, count, offect);
-    
+
     outb_p(COM_WRITE_SECTORS_EXT, io.command_io);
-    
+
 }
 
 static void ata_read_data(_ata_io_t io, void* buf, _size_t sector_count, _size_t count, _u64_t offect) {
-    
+
     int i,n;
     for (n = 0; n < sector_count; n++) {
+        //while ((inb(io.status_io) & STAT_REG_BSY) != 0) {}
         intr_lock(io.ilock);
         init_intr_lock(io.ilock);
         for (i = 0; i < (ATA_SECTOR_SIZE / 2); i++) {
@@ -327,60 +328,62 @@ static void ata_read_data(_ata_io_t io, void* buf, _size_t sector_count, _size_t
             }
         }
     }
-    
+
 }
 
 _ssize_t ata_read(_u8_t n, void* buf, _size_t count, _u64_t offect) {
-    
+
     if (n >= 4) return -1;
-    
+
     _u64_t start_sector = offect / ATA_SECTOR_SIZE;
-    
+
     if (start_sector >= ata_sectors[n]) return 0;
-    
+
     _u64_t end_sector = (offect + count + ATA_SECTOR_SIZE - 1) / ATA_SECTOR_SIZE;
-    
+
     if (end_sector >= ata_sectors[n]) end_sector = ata_sectors[n] - 1;
-    
+
     _size_t sector_count = end_sector - start_sector;
-    
+
+    if (sector_count == 0) return 0;
+
     _u64_t start_offect = offect - (offect & ~(_u64_t) (ATA_SECTOR_SIZE - 1));
-    
+
     _ata_io_t io = ata_io_lock(n);
-    
+
     init_intr_lock(io.ilock);
-    
+
     switch (io.state) {
-        
+
         case LBA28:
             ata_read_lba28(io, sector_count, start_sector);
             break;
-        
+
         case LBA48:
             ata_read_lba48(io, sector_count, start_sector);
             break;
-        
+
         default:
             ata_io_unlock(n);
             return -1;
     }
-    
+
     if ((inb(io.status_io) & STAT_REG_ERR) != 0) {
         ata_io_unlock(n);
         return -1;
     }
-    
+
     if (count > sector_count * ATA_SECTOR_SIZE - start_offect) count = sector_count * ATA_SECTOR_SIZE - start_offect;
-    
+
     ata_read_data(io, buf, sector_count, count, start_offect);
-    
+
     ata_io_unlock(n);
-    
+
     return count;
 }
 
 static void ata_write_data(_ata_io_t io, void* buf, _size_t sector_count, _size_t count, _u64_t offect) {
-    
+
     int i,n;
     for (n = 0; n < sector_count; n++) {
         while ((inb(io.status_io) & STAT_REG_BSY) != 0) {}
@@ -409,67 +412,67 @@ static void ata_write_data(_ata_io_t io, void* buf, _size_t sector_count, _size_
             outw(data,io.data_io);
         }
     }
-    
+
 }
 
 _ssize_t ata_write(_u8_t n, void* buf, _size_t count, _u64_t offect) {
-    
+
     if (n >= 4) return -1;
-    
+
     _u64_t start_sector = offect >> 9;
-    
+
     if (start_sector >= ata_sectors[n]) return 0;
-    
+
     _u64_t end_sector = (offect + count + ATA_SECTOR_SIZE - 1) >> 9;
-    
+
     if (end_sector >= ata_sectors[n]) end_sector = ata_sectors[n] - 1;
-    
+
     _size_t sector_count = end_sector - start_sector;
-    
+
     _u64_t start_offect = offect - (offect & ~(_u64_t) (ATA_SECTOR_SIZE - 1));
-    
+
     if (start_offect != 0) {
         if (ata_read(n, &buf_1, start_offect, offect & ~(_u64_t) (ATA_SECTOR_SIZE - 1)) == -1) {
             return -1;
         }
     }
-    
+
     if ((end_sector + 1) * ATA_SECTOR_SIZE > count + offect) {
         if (ata_read(n, &buf_2, end_sector * ATA_SECTOR_SIZE - (count + offect), count + offect) == -1) {
             return -1;
         }
     }
-    
+
     _ata_io_t io = ata_io_lock(n);
-    
+
     //init_intr_lock(io.ilock);
-    
+
     switch (io.state) {
-        
+
         case LBA28:
             ata_write_lba28(io, sector_count, start_sector);
             break;
-        
+
         case LBA48:
             ata_write_lba48(io, sector_count, start_sector);
             break;
-        
+
         default:
             ata_io_unlock(n);
             return -1;
     }
-    
+
     if ((inb(io.status_io) & STAT_REG_ERR) != 0) {
         ata_io_unlock(n);
         return -1;
     }
-    
+
     if (count > sector_count * ATA_SECTOR_SIZE - start_offect) count = sector_count * ATA_SECTOR_SIZE - start_offect;
-    
+
     ata_write_data(io, buf, sector_count, count, start_offect);
-    
+
     ata_io_unlock(n);
-    
+
     return count;
 }
 
@@ -479,13 +482,13 @@ _u64_t get_ata_sectors(_u8_t n) {
 }
 
 void init_ata(void) {
-    
+
     reg_irq_handler(14, irq14_handler);
     reg_irq_handler(15, irq15_handler);
-    
+
     init_process_lock(&lock_p);
     init_process_lock(&lock_s);
-    
+
     init_status();
-    
+
 }

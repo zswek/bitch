@@ -26,6 +26,7 @@ struct process_t {
     _size_t pid;
     _u32_t* stack_top;
     _pde_t* pde;
+    _pde_t* pde_phy;
     _context_t context;
     _lock_t* lock;
     _size_t tick;
@@ -34,7 +35,7 @@ struct process_t {
 
 extern _process_t* current_process;
 
-_size_t process_create(void (*fn)(void*), void *arg, _pde_t* pde);
+_size_t process_create(void (*fn)(void*), void *arg, void (*exit)(void),_pde_t* pde);
 void process_exit(void);
 
 void process_init(void);

@@ -15,6 +15,6 @@ void vmm_free_page(void* attr, _size_t count);
 
 void* vmm_mmap_page(void* phy_attr);
 
-void vmm_unmamp_page(void* attr, _size_t count);
+void vmm_ummap_page(void* attr, _size_t count);
 
 #endif
