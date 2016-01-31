@@ -5,6 +5,8 @@
 
 void exec(const char* path);
 
+void exec_exit(void);
+
 void exec_init(void);
 
 #endif

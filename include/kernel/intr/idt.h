@@ -7,6 +7,8 @@
 
 void idt_set(_u8_t n, void* base_attr);
 
+void idt_attribute(_u8_t n, _u8_t attribute);
+
 void idt_init(void);
 
 #endif

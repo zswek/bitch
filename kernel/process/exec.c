@@ -5,26 +5,32 @@
 #include <kernel/mm/umm.h>
 #include <kernel/dev/disk.h>
 #include <kernel/dev/file.h>
+#include <kernel/intr/isr.h>
 #include <kernel/binfmt.h>
 #include <kernel/process.h>
 #include <debug.h>
 
 static char init_exec[] = "init";
 
-static void exit(void) {
+void exec_exit(void) {
 
-    current_process -> pde_phy = kernel_mmap_pde;
+    _pde_t* pde = current_process -> pde;
+    current_process -> pde = kernel_mmap_pde;
     load_pde(kernel_mmap_pde);
-    umm_free(current_process -> pde);
+    umm_free(pde);
 
     process_exit();
 }
 
 static void user_isr_handler(_intr_regs_t *regs) {
 
+    if ((regs -> int_code == 0x0e ) && (umm_handler(current_process -> pde) != 0)) return;
+
     enable_intr();
 
-    exit();
+    debug("Process %d: Fault 0x%x, Error Code 0x%x, 0x%x", current_process -> pid, regs -> int_code, regs -> err_code, get_page_fault_attr());
+
+    exec_exit();
 }
 
 _size_t exec(const char* path) {
@@ -33,7 +39,7 @@ _size_t exec(const char* path) {
 
     if (pde == NULL) return 0;
 
-    _size_t pid = process_create(binfmt_exec, path, exit, pde);
+    _size_t pid = process_create(binfmt_exec, path, exec_exit, pde);
 
     if (pid == 0) umm_free(pde);
 
@@ -50,12 +56,12 @@ void exec_init(void) {
         id = get_disk_id(i);
         if (id == -1) break;
         if (disk_fread(id, init_exec, NULL, 0, 0) != -1) {
-            debug("Disk %d: Found Init Process(%s)", id, init_exec);
+            debug("Disk %d: Found Init Process (%s)", id, init_exec);
             set_disk(id);
             exec(init_exec);
             return;
         }
     }
 
-    debug("Exec: Not Found Init Process(%s)", init_exec);
+    debug("Exec: Not Found Init Process (%s)", init_exec);
 }

@@ -56,6 +56,7 @@ void* pmm_alloc_page(void) {
         }
     }
     //process_unlock(&lock);
+    debug("Memory: Physical Memory Insufficient");
     return NULL;
 }
 
@@ -84,6 +85,7 @@ void* pmm_up_alloc_page(_size_t count) {
         }
     }
     //process_unlock(&lock);
+    debug("Memory: Physical Memory Insufficient");
     return NULL;
 }
 
@@ -93,21 +95,21 @@ void pmm_free_page(void* attr, _size_t count) {
         set_bit_mask(index + i, 0);
     }
     if (index < pmm_head_pos) pmm_head_pos = index;
-    if (index + count - 1 > pmm_tail_pos) 
+    if (index + count - 1 > pmm_tail_pos)
         pmm_tail_pos = index + count - 1;
     pmm_free_page_count += count;
 }
 
 void pmm_init(void) {
-    
+
     pmm_bitmap = _mem_base_addr;
-    
+
     pmm_bitmap_length =  (mem_page_count + 7) / 8;
-    
+
     _mem_base_addr += pmm_bitmap_length;
-    
+
     pmm_free_page_count = 0;
-    
+
     _size_t i, mem_base_page = ((_u32_t) _mem_base_addr + PAGE_SIZE - 1) / PAGE_SIZE;
     for (i = 0; i < pmm_bitmap_length * 8; i++) {
         if (i < mem_base_page || i >= mem_page_count) {
@@ -118,12 +120,12 @@ void pmm_init(void) {
             pmm_free_page_count++;
         }
     }
-    
+
     pmm_head_pos = mem_base_page;
     pmm_tail_pos = mem_page_count - 1;
-    
+
     debug("Memory: %d MB, Total %d pages, Free %d pages", (_mem_length + 1023 * 1024) / (1024 * 1024), mem_page_count, pmm_free_page_count);
-    
+
     //init_process_lock(&lock);
-    
+
 }

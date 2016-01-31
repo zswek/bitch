@@ -10,7 +10,7 @@ BIN = bitch
 CC = gcc
 LD = ld
 
-C_FLAGS = -DDEBUG -O -c -Wall -m32 -nostdinc -fno-builtin -fno-stack-protector -I include
+C_FLAGS = -DDEBUG -O -fPIC -c -Wall -m32 -nostdinc -fno-builtin -fno-stack-protector -I include
 LD_FLAGS = -T arch/x86/x86.ld -m elf_i386 -nostdlib
 
 QEMU = qemu-system-x86_64

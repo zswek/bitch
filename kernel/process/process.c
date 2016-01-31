@@ -32,8 +32,8 @@ switch_to:
         if (next != prev) {
             current_process = next;
             globl_tss.esp0 = (_u32_t) current_process -> stack_top;
-            if (prev -> pde_phy != current_process -> pde_phy) {
-                load_pde(current_process -> pde_phy);
+            if (prev -> pde != current_process -> pde) {
+                load_pde(current_process -> pde);
             }
             switch_context(&(prev -> context), &(current_process -> context));
         }
@@ -69,7 +69,6 @@ static void init_current_process(void)
     current_process -> stack_top = (_u32_t *)((_u32_t) current_process + KERNEL_STACK_SIZE);
 
     current_process -> pde = kernel_mmap_pde;
-    current_process -> pde_phy = kernel_mmap_pde;
 
     current_process -> next = current_process;
 
@@ -117,7 +116,6 @@ _size_t process_create(void (*fn)(void*), void *arg, void (*exit)(void),_pde_t* 
     new -> context.eflags = 0x200;
 
     new -> pde = pde;
-    new -> pde_phy = get_globl_phy_attr(pde);
 
     new -> next = current_process -> next;
 

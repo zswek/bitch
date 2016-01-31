@@ -26,7 +26,6 @@ struct process_t {
     _size_t pid;
     _u32_t* stack_top;
     _pde_t* pde;
-    _pde_t* pde_phy;
     _context_t context;
     _lock_t* lock;
     _size_t tick;

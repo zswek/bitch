@@ -7,10 +7,12 @@
 
 void binfmt_exec(const char* path) {
 
-    debug("Process %d: binfmt(%s)", current_process -> pid, path);
+    debug("Process %d: Binary Format (%s)", current_process -> pid, path);
 
     elf_exec(path);
 
     a_out_exec(path);
+
+    debug("Process %d: Format Error (%s)", current_process -> pid, path);
 
 }

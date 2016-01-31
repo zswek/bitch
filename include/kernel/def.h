@@ -26,6 +26,8 @@
 
 #define IDT_LENGTH              0x100       //256
 
+#define SYSCALL_INT     0xbe
+
 #define PAGE_OFFSET          0xc0000000     //3G
 #define GLOBL_PAGE_NUM       0x30000        //192K*4K = 768M
 #define DMMAP_PAGE_MAX       0x20000        //128K*4K = 512M

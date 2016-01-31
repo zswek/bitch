@@ -67,23 +67,33 @@ void* vmm_alloc_page(_size_t count) {
         }
     }
     process_unlock(&lock);
+    debug("Kernel Mapp: Dynamic Pages Insufficient");
     return NULL;
 }
 
 void vmm_free_page(void* attr, _size_t count) {
-    _size_t i, index = (_u32_t) attr / PAGE_SIZE - dmmap_page_count;
-    if (index + count <= vmmap_page_count) {
-        for (i = 0; i < count; i++) {
-            pmm_free_page(get_vmm_page(index + i), 1);
-            globl_page_remove(get_globl_page_index(index + i));
-        }
-        if (index + count - 1 > vmm_pos)
-            vmm_pos = index + count - 1;
+    _size_t i, index = (_u32_t) attr / PAGE_SIZE;
+    if (index < dmmap_page_count) {
+        pmm_free_page(attr, count);
     }
-    vmm_free_page_count += count;
+    else {
+        index -= dmmap_page_count;
+        if (index + count <= vmmap_page_count) {
+            for (i = 0; i < count; i++) {
+                pmm_free_page(get_vmm_page(index + i), 1);
+                globl_page_remove(get_globl_page_index(index + i));
+            }
+            if (index + count - 1 > vmm_pos)
+                vmm_pos = index + count - 1;
+        }
+        vmm_free_page_count += count;
+    }
 }
 
 void* vmm_mmap_page(void* phy_attr) {
+    if ((_u32_t) phy_attr / PAGE_SIZE < dmmap_page_count) {
+        return phy_attr;
+    }
     _size_t p;
     process_lock(&lock);
     for (p = vmm_pos; p > 0; p--) {
@@ -95,19 +105,39 @@ void* vmm_mmap_page(void* phy_attr) {
         }
     }
     process_unlock(&lock);
+    debug("Kernel Mapp: Dynamic Pages Insufficient");
     return NULL;
 }
 
 void vmm_ummap_page(void* attr, _size_t count) {
-    _size_t i, index = (_u32_t) attr / PAGE_SIZE - dmmap_page_count;
-    if (index + count <= vmmap_page_count) {
-        for (i = 0; i < count; i++) {
-            globl_page_remove(get_globl_page_index(index + i));
+    _size_t i, index = (_u32_t) attr / PAGE_SIZE;
+    if (index >= dmmap_page_count) {
+        index -= dmmap_page_count;
+        if (index + count <= vmmap_page_count) {
+            for (i = 0; i < count; i++) {
+                globl_page_remove(get_globl_page_index(index + i));
+            }
+            if (index + count - 1 > vmm_pos)
+                vmm_pos = index + count - 1;
         }
-        if (index + count - 1 > vmm_pos)
-            vmm_pos = index + count - 1;
+        vmm_free_page_count += count;
     }
-    vmm_free_page_count += count;
+}
+
+void* dmm_alloc_page(_size_t count) {
+    process_lock(&lock);
+    void* attr = pmm_up_alloc_page(count);
+    process_unlock(&lock);
+    if ((_u32_t) attr / PAGE_SIZE + count > dmmap_page_count) {
+        pmm_free_page(attr, count);
+        debug("Kernel Mapp: Direct Pages Insufficient");
+        return NULL;
+    }
+    return attr;
+}
+
+void dmm_free_page(void* attr, _size_t count) {
+    pmm_free_page(attr, count);
 }
 
 void vmm_init(void) {

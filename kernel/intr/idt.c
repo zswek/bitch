@@ -11,8 +11,13 @@ void idt_set(_u8_t n, void* base_attr) {
         set_gate_descriptor(&idt_list[n], selector(GDT_KERNEL_CODE_INDEX, SEL_RPL0), (_u32_t) base_attr, DESC_P|DESC_D|GATE_TYPE_INT);
 }
 
+void idt_attribute(_u8_t n, _u8_t attribute) {
+    if (n < IDT_LENGTH)
+        idt_list[n].attribute |= attribute;
+}
+
 void idt_init(void) {
-    
+
     load_idt((void*) ((_u32_t) &idt_list + PAGE_OFFSET), IDT_LENGTH);
-    
+
 }

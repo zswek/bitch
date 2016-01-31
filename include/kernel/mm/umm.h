@@ -8,7 +8,9 @@
 
 _pde_t* umm_alloc_pde(void);
 
-void* umm_mmap_page(void* attr, void* mmap_attr, _pde_t* pde);
+_size_t umm_mmap_page(void* attr, void* mmap_attr, _pde_t* pde);
+
+_size_t umm_handler(_pde_t* pde);
 
 void umm_free(_pde_t* pde);
 
