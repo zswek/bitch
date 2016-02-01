@@ -7,10 +7,10 @@
 
 void panic(_intr_regs_t *regs) {
 
-    printk("\nPanic:0x%08X\nError Code:0x%08X\n", regs -> int_code, regs -> err_code);
+    printk("\nPanic: 0x%08X\nError Code: 0x%08X\n", regs -> int_code, regs -> err_code);
 
     if (regs -> int_code == 0xe) {
-        printk("0x%08X\n", get_page_fault_attr());
+        printk("Fault Address: 0x%08X\n", get_page_fault_attr());
     }
 
     disable_intr();

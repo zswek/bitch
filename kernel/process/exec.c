@@ -27,14 +27,12 @@ void exec_exit(void) {
 
 static void user_isr_handler(_intr_regs_t *regs) {
 
-    if (regs -> int_code == 0x0e ) {
-        if (umm_handler(current_process -> pde) != 0) return;
-    }
+    if ((regs -> int_code == 0x0e) && (umm_handler(current_process -> pde) != 0)) return;
     else printk("Segmentation Fault\n");
 
     enable_intr();
 
-    debug("Process %d: Fault 0x%x, Error Code 0x%x, 0x%x", current_process -> pid, regs -> int_code, regs -> err_code, get_page_fault_attr());
+    debug("Process %d: Fault 0x%x, Error Code 0x%x, Fault Address 0x%x", current_process -> pid, regs -> int_code, regs -> err_code, get_page_fault_attr());
 
     exec_exit();
 }
