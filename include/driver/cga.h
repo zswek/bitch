@@ -3,7 +3,7 @@
 #ifndef _DRIVER_CGA_H_
 #define _DRIVER_CGA_H_
 
-#include <bits/types.h>
+#include <asm/types.h>
 
 void init_cga(void);
 

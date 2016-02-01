@@ -3,7 +3,7 @@
 #ifndef _DRIVER_ATKBD_H_
 #define _DRIVER_ATKBD_H_
 
-#include <bits/types.h>
+#include <asm/types.h>
 #include <driver/i8259.h>
 
 #define KEYBOARD_INT    IRQ0_INT

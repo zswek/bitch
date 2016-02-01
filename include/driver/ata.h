@@ -3,7 +3,7 @@
 #ifndef _DRIVER_ATA_H_
 #define _DRIVER_ATA_H_
 
-#include <bits/types.h>
+#include <asm/types.h>
 
 #define ATA_INT     IRQ14_INT
 

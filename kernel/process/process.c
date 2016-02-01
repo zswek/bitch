@@ -7,6 +7,7 @@
 #include <arch/x86/selector.h>
 #include <driver/timer.h>
 #include <kernel/process.h>
+#include <kernel/process/switch.h>
 #include <kernel/mm/kmm.h>
 #include <kernel/process/lock.h>
 #include <kernel/process/exec.h>
@@ -14,8 +15,6 @@
 #include <debug.h>
 
 extern _process_t init_kernel_stack;
-
-void switch_context(_context_t* prev, _context_t* next);
 
 _process_t* current_process = NULL;
 
@@ -66,7 +65,7 @@ static void init_current_process(void)
 
     current_process -> state = RUN;
     current_process -> pid = new_pid++;
-    current_process -> stack_top = (_u32_t *)((_u32_t) current_process + KERNEL_STACK_SIZE);
+    current_process -> stack_top = (_size_t*) ((_size_t) current_process + KERNEL_STACK_SIZE);
 
     current_process -> pde = kernel_mmap_pde;
 
@@ -80,7 +79,7 @@ static void init_tss(void) {
     memset(&globl_tss, 0, sizeof(globl_tss));
 
     globl_tss.ss0 = selector(GDT_KERNEL_DATA_INDEX, SEL_RPL0);
-    globl_tss.esp0 = ((_u32_t) current_process + KERNEL_STACK_SIZE);
+    globl_tss.esp0 = (_u32_t) ((_size_t) current_process + KERNEL_STACK_SIZE);
 
     globl_tss.cs = selector(GDT_KERNEL_CODE_INDEX, SEL_RPL3);
     globl_tss.ss = globl_tss.ds = globl_tss.es = globl_tss.fs = globl_tss.gs = selector(GDT_KERNEL_DATA_INDEX, SEL_RPL3);
@@ -105,13 +104,13 @@ _size_t process_create(void (*fn)(void*), void *arg, void (*exit)(void),_pde_t* 
 
     new -> state = RUN;
     new -> pid = new_pid++;
-    new -> stack_top = (_u32_t *)((_u32_t) new + KERNEL_STACK_SIZE);
+    new -> stack_top = (_size_t*) ((_size_t) new + KERNEL_STACK_SIZE);
 
-    *(new -> stack_top - 1) = (_u32_t)arg;
-    *(new -> stack_top - 2) = (_u32_t)exit;
-    *(new -> stack_top - 3) = (_u32_t)fn;
+    *(new -> stack_top - 1) = (_size_t) arg;
+    *(new -> stack_top - 2) = (_size_t) exit;
+    *(new -> stack_top - 3) = (_size_t) fn;
 
-    new -> context.esp = (_u32_t)((_u32_t) new -> stack_top - sizeof(_u32_t) * 3);
+    new -> context.esp = (_size_t)((_size_t) new -> stack_top - sizeof(_size_t) * 3);
 
     new -> context.eflags = 0x200;
 

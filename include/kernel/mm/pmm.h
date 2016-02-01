@@ -3,7 +3,7 @@
 #ifndef _KERNEL_MM_PMM_H_
 #define _KERNEL_MM_PMM_H_
 
-#include <bits/types.h>
+#include <asm/types.h>
 
 void pmm_init(void);
 

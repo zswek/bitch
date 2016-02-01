@@ -3,7 +3,7 @@
 #ifndef	_KERNEL_FS_H_
 #define	_KERNEL_FS_H_
 
-#include <bits/types.h>
+#include <asm/types.h>
 
 typedef enum file_type_t {
     FILE_REG,

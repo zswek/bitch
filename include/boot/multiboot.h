@@ -3,7 +3,7 @@
 #ifndef	_BOOT_MULTIBOOT_H
 #define	_BOOT_MULTIBOOT_H
 
-#include <bits/types.h>
+#include <asm/types.h>
 
 #define _CHECK_FLAG(flags,bit)   ((flags) & (1 << (bit)))  
 

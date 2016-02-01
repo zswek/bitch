@@ -7,7 +7,7 @@
 #include <kernel/mm/vmm.h>
 #include <lib/string.h>
 
-static _pte_t get_umm_value(void* attr, _pde_t* pde) {
+_pte_t get_umm_value(void* attr, _pde_t* pde) {
     if (pde[pde_index(attr)] == 0) {
         return 0;
     }
@@ -16,9 +16,9 @@ static _pte_t get_umm_value(void* attr, _pde_t* pde) {
     }
 }
 
-static _size_t set_umm_value(void* attr, _pte_t value, _pde_t* pde) {
+_size_t set_umm_value(void* attr, _pte_t value, _pde_t* pde) {
 
-    if ((_u32_t) attr >= PAGE_OFFSET) return 0;
+    if ((_size_t) attr >= PAGE_OFFSET) return 0;
 
     _pte_t* pte;
     if (get_page_attr(pde[pde_index(attr)]) == 0) {
@@ -105,6 +105,34 @@ _size_t umm_mmap_page(void* attr, void* mmap_attr, _pde_t* pde) {
 
     return NULL;
 }*/
+
+void* umm_mmap_kmm(void* attr, _size_t len, _pde_t* pde) {
+    if ((_size_t) attr + len > PAGE_OFFSET) return NULL;
+    _size_t mmap_attr = (_size_t) attr & ~(PAGE_SIZE - 1);
+    _size_t page_conut = ((_size_t) attr + len - mmap_attr + PAGE_SIZE - 1) / PAGE_SIZE;
+    void* p;
+    if (page_conut == 1) {
+        void* phy_attr = get_page_attr(get_umm_value((void*) mmap_attr, pde));
+        if (phy_attr == NULL) {
+            p = vmm_alloc_page(1);
+            if (p != NULL) set_umm_value((void*) mmap_attr, set_page(get_globl_phy_attr(p), PAGE_PRESENT|PAGE_WRITE|PAGE_USER), pde);
+        }
+        else {
+            p = vmm_mmap_page(phy_attr);
+        }
+    }
+    else {
+        p = vmm_mmap_pde_page((void*) mmap_attr, page_conut, pde);
+    }
+    if (p == NULL) return NULL;
+    return (void *) ((_size_t) p + (_size_t) attr - mmap_attr);
+}
+
+void umm_ummap_kmm(void* attr, _size_t len) {
+    _size_t mmap_attr = (_size_t) attr & ~(PAGE_SIZE - 1);
+    _size_t page_conut = ((_size_t) attr + len - mmap_attr + PAGE_SIZE - 1) / PAGE_SIZE;
+    vmm_ummap_page((void*) mmap_attr, page_conut);
+}
 
 _size_t umm_handler(_pde_t* pde) {
     void* attr = (void*) get_page_fault_attr(), *phy = pmm_alloc_page();

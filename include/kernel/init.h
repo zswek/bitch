@@ -3,7 +3,7 @@
 #ifndef	_KERNEL_INIT_H_
 #define	_KERNEL_INIT_H_
 
-#include <bits/types.h>
+#include <asm/types.h>
 
 extern _u8_t _kernel_start[];
 extern _u8_t _kernel_end[];

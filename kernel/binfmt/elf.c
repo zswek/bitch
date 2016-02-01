@@ -1,11 +1,14 @@
 // kernel/binfmt/elf.c
 
-#include <bits/types.h>
+#include <asm/types.h>
 #include <kernel/def.h>
+#include <kernel/mm/alloc.h>
 #include <kernel/mm/vmm.h>
 #include <kernel/mm/umm.h>
 #include <kernel/dev/file.h>
 #include <kernel/process.h>
+#include <kernel/process/switch.h>
+#include <lib/string.h>
 #include <debug.h>
 
 #define EI_NIDENT     16
@@ -74,14 +77,23 @@ typedef struct elf32_section_header_t {
 } _elf32_section_header_t;
 
 static _ssize_t load_program(const char* path, _u32_t offect, _u32_t size, _u32_t num) {
-    _size_t n, i;
+    _size_t n;
     for (n = 0; n < num; n++) {
         _elf32_program_header_t pheader;
         if (file_read(path, &pheader, sizeof(_elf32_program_header_t), offect + size * n) == -1) {
             return -1;
         }
         if (pheader.p_type == PT_LOAD) {
-            _size_t mmap_attr = pheader.p_vaddr & ~(PAGE_SIZE - 1);
+            _size_t size = (pheader.p_memsz > pheader.p_filesz) ? pheader.p_memsz : pheader.p_filesz;
+            void* p = umm_mmap_kmm((void*) pheader.p_vaddr, size, current_process -> pde);
+            if (p == NULL) return -1;
+            if (file_read(path, p, pheader.p_filesz, pheader.p_offset) == -1) {
+                umm_ummap_kmm(p, size);
+                return -1;
+            }
+            memset((void*) ((_size_t) p + pheader.p_filesz), 0, size - pheader.p_filesz);
+            umm_ummap_kmm(p, size);
+            /*_size_t mmap_attr = pheader.p_vaddr & ~(PAGE_SIZE - 1);
             _size_t page_conut = (pheader.p_vaddr + pheader.p_memsz - mmap_attr + PAGE_SIZE - 1) / PAGE_SIZE;
             void* p = vmm_alloc_page(page_conut);
             if (file_read(path, p + pheader.p_vaddr - mmap_attr, pheader.p_filesz, pheader.p_offset) == -1)
@@ -92,7 +104,7 @@ static _ssize_t load_program(const char* path, _u32_t offect, _u32_t size, _u32_
                     return -1;
                 }
             }
-            vmm_ummap_page(p, page_conut);
+            vmm_ummap_page(p, page_conut);*/
             debug("ELF(%s): Load Segment, VirtAddr 0x%08X, MemSize 0x%X", path, pheader.p_vaddr, pheader.p_memsz);
         }
     }
@@ -113,8 +125,9 @@ void elf_exec(const char* path) {
     (header.e_ident[EI_CLASS] == 0x1) &&
     (header.e_type == 0x2)) {
         if (load_program(path, header.e_phoff, header.e_phentsize, header.e_phnum) != -1) {
+            kfree((void*) path);
             debug("ELF(%s): Entry point Address 0x%08X", path, header.e_entry);
-            switch_to_user_mode(header.e_entry, PAGE_OFFSET);
+            switch_to_user_mode((void*) header.e_entry, (void*) PAGE_OFFSET);
         }
         else {
             debug("ELF(%s): Load Fail", path);

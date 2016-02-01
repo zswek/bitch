@@ -1,6 +1,6 @@
 // kernel/dev/part.c
 
-#include <bits/types.h>
+#include <asm/types.h>
 #include <kernel/dev/part/gpt.h>
 #include <kernel/dev/part/mbr.h>
 

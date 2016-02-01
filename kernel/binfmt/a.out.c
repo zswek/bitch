@@ -1,6 +1,6 @@
 // kernel/binfmt/a.out.c
 
-#include <bits/types.h>
+#include <asm/types.h>
 
 typedef struct exec_header_t {
     _u32_t a_midmag;

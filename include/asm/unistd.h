@@ -4,6 +4,7 @@
 #define _KERNEL_SYSCALL_UNISTD_H_
 
 #define __SYS_exit  0
-#define __SYS_put   1
+#define __SYS_exec  1
+#define __SYS_put   2
 
 #endif

@@ -3,7 +3,7 @@
 #ifndef _KERNEL_DEV_FILE_H_
 #define _KERNEL_DEV_FILE_H_
 
-#include <bits/types.h>
+#include <asm/types.h>
 #include <kernel/fs.h>
 
 void set_disk(_size_t id);

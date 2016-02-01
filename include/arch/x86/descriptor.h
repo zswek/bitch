@@ -3,7 +3,7 @@
 #ifndef _ARCH_X86_DESCRIPTOR_H_
 #define _ARCH_X86_DESCRIPTOR_H_
 
-#include <bits/types.h>
+#include <asm/types.h>
 
 #define SEGM_G          0x8000
 #define SEGM_DB         0x4000

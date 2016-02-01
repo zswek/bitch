@@ -3,7 +3,7 @@
 #ifndef _LIB_STRING_H_
 #define _LIB_STRING_H_
 
-#include <bits/types.h>
+#include <asm/types.h>
 
 inline void memcpy(void *dest, void *src, _size_t len)
 {
@@ -22,12 +22,12 @@ inline int memcmp(void *dest, void *src, _size_t len)
         _u8_t *dst = dest;
 
         int ret = 0;
-        
+
         while (len != 0) {
                 if (!(ret = (*dst++) - (*sr++))) break;
                 len--;
         }
-        
+
         return ret;
 }
 
@@ -66,7 +66,7 @@ inline char *strcpy(char *dest, const char *src)
         }
 
         *dest = '\0';
-        
+
         return tmp;
 }
 
@@ -106,7 +106,7 @@ inline _size_t strlen(const char *src)
 
         while (*eos++)
               ;
-                
+
         return (eos - src - 1);
 }
 
@@ -115,7 +115,7 @@ inline char *strchr(char *s,char c)
     while(*s != '\0' && *s != c) {
         ++s;
     }
-    
+
     return *s==c ? s : NULL;
 }
 

@@ -3,7 +3,7 @@
 #ifndef	_KERNEL_PROCESS_EXEC_H_
 #define	_KERNEL_PROCESS_EXEC_H_
 
-void exec(const char* path);
+_size_t exec(const char* path);
 
 void exec_exit(void);
 

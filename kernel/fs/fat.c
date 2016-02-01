@@ -170,7 +170,7 @@ static _fat_dir_t read_root_dir_entry(_fat_t* fat, _size_t n) {
             dir = read_dir_entry(fat, fat -> root_dir_cluster, n);
             break;
     }
-    
+
     return dir;
 }
 
@@ -466,7 +466,7 @@ static _fat_std_dir_t get_path(_fat_t* fat, char* path) {
 
 _file_t fat_readdir(_fat_t* fat, const char* path, _size_t n) {
 
-    _fat_std_dir_t dir = get_path(fat, path);
+    _fat_std_dir_t dir = get_path(fat, (char*) path);
 
     if (dir.reserved == '/') {
         return read_root_dir(fat, n);
@@ -479,7 +479,7 @@ _file_t fat_readdir(_fat_t* fat, const char* path, _size_t n) {
 
 _ssize_t fat_read(_fat_t* fat, const char* path, void* buf, _size_t count, _u64_t offect) {
 
-    _fat_std_dir_t file = get_path(fat, path);
+    _fat_std_dir_t file = get_path(fat, (char*) path);
 
     if (file.reserved == '/') {
         return -1;

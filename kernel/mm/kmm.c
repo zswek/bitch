@@ -15,14 +15,14 @@ void globl_mmap_init(void) {
     int m, n;
 
     for (m = 0; m < PAGE_PDE_INDEX; m++) {
-        kernel_mmap_pde[m] = set_page(0, 0);
+        kernel_mmap_pde[m] = 0;
     }
 
     for (m = 0; m < GLOBL_PTE_NUM; m++) {
         kernel_mmap_pde[pde_index(PAGE_OFFSET) + m] = set_page(&globl_mmap_pte[m],
         PAGE_PRESENT|PAGE_WRITE);
         for (n = 0; n < PAGE_PTE_INDEX; n++) {
-            globl_mmap_pte[m][n] = set_page(0, 0);
+            globl_mmap_pte[m][n] = 0;
         }
     }
 
@@ -37,7 +37,7 @@ void globl_page_mmap(_size_t phy_page_index, _size_t globl_page_index) {
 
 void globl_page_remove(_size_t index) {
     if (index < GLOBL_PTE_NUM * PAGE_PTE_INDEX)
-        globl_mmap_pte[0][index] = set_page(0, 0);
+        globl_mmap_pte[0][index] = 0;
 }
 
 void* get_globl_page_attr(_size_t page_index) {

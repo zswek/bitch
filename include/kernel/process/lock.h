@@ -3,7 +3,7 @@
 #ifndef	_KERNEL_PROCESS_LOCK_H_
 #define	_KERNEL_PROCESS_LOCK_H_
 
-#include <bits/types.h>
+#include <asm/types.h>
 
 #define init_process_lock(lock)     (*(lock) = 0)
 #define init_intr_lock(lock)        (*(lock) = 1)

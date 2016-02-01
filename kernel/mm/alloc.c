@@ -1,6 +1,6 @@
 // kernel/mm/alloc.c
 
-#include <bits/types.h>
+#include <asm/types.h>
 #include <kernel/def.h>
 #include <kernel/mm/vmm.h>
 
@@ -18,8 +18,8 @@ void* kmalloc(_size_t len) {
 
     len += sizeof(_alloc_header_t);
 
-    if ((pos != NULL) && (((((_u32_t) pos + pos -> length + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1)) - ((_u32_t) pos + pos -> length)) >= len)) {
-        mem = (_alloc_header_t*) ((_u32_t) pos + pos -> length);
+    if ((pos != NULL) && (((((_size_t) pos + pos -> length + PAGE_SIZE - 1) & ~(PAGE_SIZE - 1)) - ((_size_t) pos + pos -> length)) >= len)) {
+        mem = (_alloc_header_t*) ((_size_t) pos + pos -> length);
     }
     else {
         if ((mem = vmm_alloc_page((len + PAGE_SIZE - 1) / PAGE_SIZE)) == NULL) {
@@ -35,27 +35,27 @@ void* kmalloc(_size_t len) {
 
     pos = mem;
 
-    return (void *) ((_u32_t) mem + sizeof(_alloc_header_t));
+    return (void *) ((_size_t) mem + sizeof(_alloc_header_t));
 
 }
 
 void kfree(void *p) {
 
-    _alloc_header_t* mem = (_alloc_header_t*) ((_u32_t) p - sizeof(_alloc_header_t));
+    _alloc_header_t* mem = (_alloc_header_t*) ((_size_t) p - sizeof(_alloc_header_t));
 
-    void* attr = (void *) ((_u32_t) mem & ~(PAGE_SIZE - 1));
+    void* attr = (void *) ((_size_t) mem & ~(PAGE_SIZE - 1));
     _ssize_t num = (mem -> length + PAGE_SIZE - 1) / PAGE_SIZE;
 
     if (mem -> last != NULL) {
         mem -> last -> next = mem -> next;
-        if ((((_u32_t) mem -> last + mem -> last -> length - 1) & ~(PAGE_SIZE - 1)) == (_u32_t) attr) {
+        if ((((_size_t) mem -> last + mem -> last -> length - 1) & ~(PAGE_SIZE - 1)) == (_size_t) attr) {
             attr += PAGE_SIZE;
             num--;
         }
     }
     if (mem -> next != NULL) {
         mem -> next -> last = mem -> last;
-        if ((((_u32_t) mem + mem -> length -1) & ~(PAGE_SIZE - 1)) == ((_u32_t) mem -> next & ~(PAGE_SIZE - 1))) {
+        if ((((_size_t) mem + mem -> length -1) & ~(PAGE_SIZE - 1)) == ((_size_t) mem -> next & ~(PAGE_SIZE - 1))) {
             num--;
         }
     }

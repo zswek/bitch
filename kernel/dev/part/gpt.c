@@ -1,6 +1,6 @@
 // kernel/dev/part/gpt.c
 
-#include <bits/types.h>
+#include <asm/types.h>
 #include <kernel/dev/disk.h>
 #include <debug.h>
 

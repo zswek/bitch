@@ -4,6 +4,7 @@
 #include <kernel/init.h>
 #include <kernel/intr.h>
 #include <kernel/dev.h>
+#include <kernel/dev/console.h>
 #include <kernel/syscall.h>
 #include <kernel/process.h>
 #include <debug.h>

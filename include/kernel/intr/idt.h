@@ -3,7 +3,7 @@
 #ifndef _KERNEL_INTR_IDT_H_
 #define _KERNEL_INTR_IDT_H_
 
-#include <bits/types.h>
+#include <asm/types.h>
 
 void idt_set(_u8_t n, void* base_attr);
 

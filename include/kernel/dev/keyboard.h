@@ -3,7 +3,7 @@
 #ifndef _KERNEL_DEV_KEYBOARD_H_
 #define _KERNEL_DEV_KAYBOARD_H_
 
-#include <bits/types.h>
+#include <asm/types.h>
 
 #define KEY_FLAG_EXT        0x80
 #define KEY_FLAG_BREAK      0x100

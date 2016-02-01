@@ -3,7 +3,7 @@
 #ifndef _ARCH_X86_PAGE_H_
 #define _ARCH_X86_PAGE_H_
 
-#include <bits/types.h>
+#include <asm/types.h>
 
 #define PAGE_MASK       0xfffff000
 

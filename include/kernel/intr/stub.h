@@ -3,7 +3,7 @@
 #ifndef _KERNEL_INTR_STUB_H_
 #define _KERNEL_INTR_STUB_H_
 
-#include <bits/types.h>
+#include <asm/types.h>
 
 typedef
 struct intr_regs_t {

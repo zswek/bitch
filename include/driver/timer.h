@@ -3,7 +3,7 @@
 #ifndef _DRIVER_TIMER_H_
 #define _DRIVER_TIMER_H_
 
-#include <bits/types.h>
+#include <asm/types.h>
 #include <kernel/intr/stub.h>
 #include <driver/i8259.h>
 

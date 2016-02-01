@@ -90,7 +90,7 @@ void* pmm_up_alloc_page(_size_t count) {
 }
 
 void pmm_free_page(void* attr, _size_t count) {
-    _size_t i, index = (_u32_t) attr / PAGE_SIZE;
+    _size_t i, index = (_size_t) attr / PAGE_SIZE;
     for (i = 0; i < count; i++) {
         set_bit_mask(index + i, 0);
     }
@@ -110,7 +110,7 @@ void pmm_init(void) {
 
     pmm_free_page_count = 0;
 
-    _size_t i, mem_base_page = ((_u32_t) _mem_base_addr + PAGE_SIZE - 1) / PAGE_SIZE;
+    _size_t i, mem_base_page = ((_size_t) _mem_base_addr + PAGE_SIZE - 1) / PAGE_SIZE;
     for (i = 0; i < pmm_bitmap_length * 8; i++) {
         if (i < mem_base_page || i >= mem_page_count) {
             set_bit_mask(i, 1);

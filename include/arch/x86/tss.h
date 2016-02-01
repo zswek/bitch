@@ -3,7 +3,7 @@
 #ifndef _ARCH_X86_TSS_H_
 #define _ARCH_X86_TSS_H_
 
-#include <bits/types.h>
+#include <asm/types.h>
 
 typedef
 struct task_state_segment_t {

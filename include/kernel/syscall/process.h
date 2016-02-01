@@ -5,4 +5,6 @@
 
 void sys_exit(void);
 
+_size_t sys_exec(char *path, _size_t len);
+
 #endif
