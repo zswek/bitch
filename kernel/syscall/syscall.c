@@ -6,6 +6,7 @@
 #include <kernel/def.h>
 #include <kernel/intr/idt.h>
 #include <kernel/intr/stub.h>
+#include <kernel/process.h>
 #include <kernel/syscall.h>
 #include <kernel/syscall/io.h>
 #include <kernel/syscall/process.h>
@@ -15,7 +16,7 @@ static void syscall_handler(_intr_regs_t *regs) {
 
     enable_intr();
 
-    debug("SysCall: 0x%x", regs -> eax);
+    debug("Process %d: SysCall %d", current_process -> pid, regs -> eax);
 
     switch (regs -> eax) {
         case __SYS_exit:

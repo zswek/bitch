@@ -15,7 +15,7 @@ LD_FLAGS = -T arch/x86/x86.ld -m elf_i386 -nostdlib
 
 QEMU = qemu-system-x86_64
 
-//C_FLAGS += -DDEBUG
+C_FLAGS += -DDEBUG
 
 all: link
 
