@@ -1,5 +1,6 @@
 // kernel/mm/vmm.c
 
+#include <arch/x86/cpu.h>
 #include <kernel/def.h>
 #include <kernel/mm/kmm.h>
 #include <kernel/mm/pmm.h>
@@ -14,7 +15,7 @@ static _size_t vmm_free_page_count;
 
 static _size_t vmm_pos;
 
-static _lock_t lock;
+//static _lock_t lock;
 
 static _size_t get_globl_page_index(_size_t index) {
     return dmmap_page_count + index;
@@ -33,7 +34,8 @@ _size_t get_vmm_free_count(void) {
 
 void* vmm_alloc_page(_size_t count) {
     _size_t p;
-    process_lock(&lock);
+    //process_lock(&lock);
+    disable_intr();
     for (p = vmm_pos; p > 0; p--) {
         _size_t i;
         for (i = 0; i < count; i++) {
@@ -52,7 +54,8 @@ void* vmm_alloc_page(_size_t count) {
                         globl_page_remove(get_globl_page_index(head + i));
                         pmm_free_page(get_vmm_page(head + i), 1);
                     }
-                    process_unlock(&lock);
+                    //process_unlock(&lock);
+                    enable_intr();
                     return NULL;
                 }
             }
@@ -60,14 +63,16 @@ void* vmm_alloc_page(_size_t count) {
                 vmm_pos -= i;
             }
             vmm_free_page_count -= count;
-            process_unlock(&lock);
+            //process_unlock(&lock);
+            enable_intr();
             return (void*) (get_globl_page_index(head) * PAGE_SIZE);
         }
         else {
             p -= i;
         }
     }
-    process_unlock(&lock);
+    //process_unlock(&lock);
+    enable_intr();
     debug("Kernel Mapp: Dynamic Pages Insufficient");
     return NULL;
 }
@@ -96,24 +101,28 @@ void* vmm_mmap_page(void* phy_attr) {
         return phy_attr;
     }
     _size_t p;
-    process_lock(&lock);
+    //process_lock(&lock);
+    disable_intr();
     for (p = vmm_pos; p > 0; p--) {
         if (get_vmm_page(p) == 0) {
             globl_page_mmap((_size_t) phy_attr / PAGE_SIZE, get_globl_page_index(p));
             vmm_free_page_count--;
             vmm_pos = p;
-            process_unlock(&lock);
+            //process_unlock(&lock);
+            enable_intr();
             return (void*) (get_globl_page_index(p) * PAGE_SIZE);
         }
     }
-    process_unlock(&lock);
+    //process_unlock(&lock);
+    enable_intr();
     debug("Kernel Mapp: Dynamic Pages Insufficient");
     return NULL;
 }
 
 void* vmm_mmap_pde_page(void* attr, _size_t count, _pde_t* pde) {
     _size_t p;
-    process_lock(&lock);
+    //process_lock(&lock);
+    disable_intr();
     for (p = vmm_pos; p > 0; p--) {
         _size_t i;
         for (i = 0; i < count; i++) {
@@ -135,7 +144,8 @@ void* vmm_mmap_pde_page(void* attr, _size_t count, _pde_t* pde) {
                     for (; i > 0; i--) {
                         globl_page_remove(get_globl_page_index(head + i));
                     }
-                    process_unlock(&lock);
+                    //process_unlock(&lock);
+                    enable_intr();
                     return NULL;
                 }
             }
@@ -143,14 +153,16 @@ void* vmm_mmap_pde_page(void* attr, _size_t count, _pde_t* pde) {
                 vmm_pos -= i;
             }
             vmm_free_page_count -= count;
-            process_unlock(&lock);
+            //process_unlock(&lock);
+            enable_intr();
             return (void*) (get_globl_page_index(head) * PAGE_SIZE);
         }
         else {
             p -= i;
         }
     }
-    process_unlock(&lock);
+    //process_unlock(&lock);
+    enable_intr();
     debug("Kernel Mapp: Dynamic Pages Insufficient");
     return NULL;
 }
@@ -171,9 +183,11 @@ void vmm_ummap_page(void* attr, _size_t count) {
 }
 
 void* dmm_alloc_page(_size_t count) {
-    process_lock(&lock);
+    //process_lock(&lock);
+    disable_intr();
     void* attr = pmm_up_alloc_page(count);
-    process_unlock(&lock);
+    //process_unlock(&lock);
+    enable_intr();
     if ((_size_t) attr / PAGE_SIZE + count > dmmap_page_count) {
         pmm_free_page(attr, count);
         debug("Kernel Mapp: Direct Pages Insufficient");
@@ -204,5 +218,5 @@ void vmm_init(void) {
 
     debug("Kernel Mapp: Direct %d pages, Dynamic %d pages", dmmap_page_count, vmmap_page_count);
 
-    init_process_lock(&lock);
+    //init_process_lock(&lock);
 }

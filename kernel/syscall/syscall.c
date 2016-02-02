@@ -25,6 +25,9 @@ static void syscall_handler(_intr_regs_t *regs) {
         case __SYS_exec:
             regs -> eax = sys_exec((char *) regs -> ebx, (_size_t) regs -> ecx);
             break;
+        case __SYS_get:
+            regs -> eax = sys_get((char *) regs -> ebx, (_size_t) regs -> ecx);
+            break;
         case __SYS_put:
             regs -> eax = sys_put((char *) regs -> ebx, (_size_t) regs -> ecx);
             break;

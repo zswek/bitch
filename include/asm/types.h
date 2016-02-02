@@ -1,7 +1,7 @@
-// bits/types.h
+// asm/types.h
 
-#ifndef	_BITS_TYPES_H
-#define	_BITS_TYPES_H
+#ifndef	_ASM_TYPES_H
+#define	_ASM_TYPES_H
 
 #define NULL ((void *) 0)
 
