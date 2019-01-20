@@ -1,3 +1,0 @@
-# bitch
-
-A ugly kernel
